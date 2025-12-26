@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>News Compare</name>
+	<description>Compare news posts side by side</description>
+	<icon>engine/skins/images/ticcix.png</icon>
+	<version>1.0</version>
+	<dleversion>17</dleversion>
+	<versioncompare>greater</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>1</mnotice>
+	<mysqlinstall><![CDATA[INSERT INTO `{prefix}_admin_sections` (`name`, `title`, `descr`, `icon`, `allow_groups`)
+VALUES ('compare', 'News Compare', 'News Compare Management Section', 'engine/skins/images/ticcix.png', '1');]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[INSERT INTO `{prefix}_admin_sections` (`name`, `title`, `descr`, `icon`, `allow_groups`)
+VALUES ('compare', 'News Compare', 'News Compare Management Section', 'engine/skins/images/ticcix.png', '1');]]></mysqlenable>
+	<mysqldisable><![CDATA[DELETE FROM `{prefix}_admin_sections` WHERE name = 'compare';]]></mysqldisable>
+	<mysqldelete><![CDATA[DELETE FROM `{prefix}_admin_sections` WHERE name = 'compare';]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[<a href="https://global-principle-c71.notion.site/Compare-The-News-2d58d246b722804e93f2c0b329630300#2d58d246b72280939868e28c93f89026" target="_blank" style="text-decoration: underline; color: #e08003 ;  font-size: 15px; font-weight: bold; ">Documentation</a>]]></notice>
+	<file name="engine/modules/show.full.php">
+		<operation action="after">
+			<searchcode><![CDATA[$tpl->set('{related-ids}', $row['related_ids']);]]></searchcode>
+			<replacecode><![CDATA[$compare_arr = isset($_SESSION['compare']) ? array_keys($_SESSION['compare']) : [];
+    $is_added = in_array($row['id'], $compare_arr);
+    $hide_add = $is_added ? 'style="display:none;"' : '';
+    $hide_del = $is_added ? '' : 'style="display:none;"';
+    
+    $tpl->set('[add-compare]', "<span id=\"btn-compare-add-{$row['id']}\" {$hide_add}><a class=\"item\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 1, 'full'); return false;\">");
+    $tpl->set('[/add-compare]', "</a></span>");
+
+    $tpl->set('[del-compare]', "<span id=\"btn-compare-del-{$row['id']}\" {$hide_del}><a class=\"item tx-white bg-danger\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 1, 'full'); return false;\">");
+    $tpl->set('[/del-compare]', "</a></span>");
+
+    if (!$is_added) {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/plus_compare.png\" title=\"დამატება\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    } else {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/minus_compare.png\" title=\"წაშლა\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    }]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/modules/show.short.php">
+		<operation action="after">
+			<searchcode><![CDATA[else $tpl->set_block( "'\\[com-link\\](.*?)\\[/com-link\\]'si", "" );]]></searchcode>
+			<replacecode><![CDATA[$compare_arr = isset($_SESSION['compare']) ? array_keys($_SESSION['compare']) : [];
+    $is_added = in_array($row['id'], $compare_arr);
+    $hide_add = $is_added ? 'style="display:none;"' : '';
+    $hide_del = $is_added ? '' : 'style="display:none;"';
+    
+    $tpl->set('[add-compare]', "<span id=\"btn-compare-add-{$row['id']}\" {$hide_add}><a class=\"item\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 1, 'full'); return false;\">");
+    $tpl->set('[/add-compare]', "</a></span>");
+
+    $tpl->set('[del-compare]', "<span id=\"btn-compare-del-{$row['id']}\" {$hide_del}><a class=\"item tx-white bg-danger\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 1, 'full'); return false;\">");
+    $tpl->set('[/del-compare]', "</a></span>");
+
+    if (!$is_added) {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/plus_compare.png\" title=\"დამატება\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    } else {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/minus_compare.png\" title=\"წაშლა\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    }]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/modules/show.custom.php">
+		<operation action="after">
+			<searchcode><![CDATA[} else $tpl->set_block( "'\\[com-link\\](.*?)\\[/com-link\\]'si", "" );]]></searchcode>
+			<replacecode><![CDATA[$compare_arr = isset($_SESSION['compare']) ? array_keys($_SESSION['compare']) : [];
+    $is_added = in_array($row['id'], $compare_arr);
+    $hide_add = $is_added ? 'style="display:none;"' : '';
+    $hide_del = $is_added ? '' : 'style="display:none;"';
+    
+    $tpl->set('[add-compare]', "<span id=\"btn-compare-add-{$row['id']}\" {$hide_add}><a class=\"item\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 1, 'full'); return false;\">");
+    $tpl->set('[/add-compare]', "</a></span>");
+
+    $tpl->set('[del-compare]', "<span id=\"btn-compare-del-{$row['id']}\" {$hide_del}><a class=\"item tx-white bg-danger\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 1, 'full'); return false;\">");
+    $tpl->set('[/del-compare]', "</a></span>");
+
+    if (!$is_added) {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/plus_compare.png\" title=\"დამატება\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    } else {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/minus_compare.png\" title=\"წაშლა\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    }]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/ajax/compare.php">
+		<operation action="create">
+			<replacecode><![CDATA[<?php
+
+
+define('DATALIFEENGINE', true);
+define('ROOT_DIR', substr(dirname(__FILE__), 0, -12));
+define('ENGINE_DIR', ROOT_DIR . '/engine');
+
+header("Content-type: application/json; charset=utf-8");
+
+require_once ENGINE_DIR . '/data/config.php';
+require_once ENGINE_DIR . '/classes/mysql.php';
+require_once ENGINE_DIR . '/modules/functions.php';
+
+// Load plugins if available
+if (file_exists(ENGINE_DIR . '/classes/plugins.class.php')) {
+  require_once ENGINE_DIR . '/classes/plugins.class.php';
+}
+
+$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+$newsId = isset($_POST['id']) ? intval($_POST['id']) : 0;
+$module = isset($_POST['module']) ? $_POST['module'] : 'short';
+
+if (!$newsId) {
+  echo json_encode([
+    "success" => false,
+    "content" => "Invalid news ID",
+    "modify" => []
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit;
+}
+
+if (!isset($_SESSION['compare'])) {
+  $_SESSION['compare'] = [];
+}
+
+$row = $db->super_query("SELECT id, title FROM " . PREFIX . "_post WHERE id = '{$newsId}'");
+
+if (!$row) {
+  echo json_encode([
+    "success" => false,
+    "content" => "News not found"
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit;
+}
+
+// Determine template path
+$template_dir = defined('TEMPLATE_DIR') ? TEMPLATE_DIR : ROOT_DIR . '/templates/' . $config['skin'];
+$template_file = $module == 'full' ? 'fullstory.tpl' : 'shortstory.tpl';
+
+$modify = [];
+$data = file_get_contents($template_dir . "/" . $template_file);
+
+if ($action == "add") {
+  $_SESSION['compare'][$newsId] = $row['title'];
+
+  if (preg_match("'\\[del-compare\\](.*?)\\[/del-compare\\]'si", $data, $match)) {
+    $modify['del_compare_html'] = "<span class=\"compare-btn\" data-compare-del=\"{$newsId}\" onclick=\"doCompare('{$newsId}', 'remove', 0, '{$module}'); return false;\">{$match[1]}</span>";
+  }
+
+  echo json_encode([
+    "success" => true,
+    "content" => "{$lang['compare_plus']}",
+    "modify" => $modify
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit;
+}
+
+if ($action == "remove") {
+  unset($_SESSION['compare'][$newsId]);
+
+  if (preg_match("'\\[add-compare\\](.*?)\\[/add-compare\\]'si", $data, $match)) {
+    $modify['add_compare_html'] = "<span class=\"compare-btn\" data-compare-add=\"{$newsId}\" onclick=\"doCompare('{$newsId}', 'add', 0, '{$module}'); return false;\">{$match[1]}</span>";
+  }
+
+  echo json_encode([
+    "success" => true,
+    "content" => "{$lang['compare_minus']}",
+    "modify" => $modify
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit;
+}
+
+echo json_encode([
+  "success" => false,
+  "content" => "Invalid action specified"
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+exit;]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="language/English/website.lng">
+		<operation action="after">
+			<searchcode><![CDATA['direction'		        =>  "ltr",]]></searchcode>
+			<replacecode><![CDATA['compare_plus' => 'Added to compare list - <a href="/compare" class="ms-2 bg-primary tx-bold tx-underline">Compare list</a>',
+'compare_minus' => 'Removed from compare list ',]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/engine.php">
+		<operation action="after">
+			<searchcode><![CDATA[case "pm" :
+		include (DLEPlugins::Check(ENGINE_DIR . '/modules/pm.php'));
+		break;]]></searchcode>
+			<replacecode><![CDATA[case "compare" :
+		include (DLEPlugins::Check(ENGINE_DIR . '/modules/ticcix/compare.php'));
+		break;]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/modules/ticcix/compare.php">
+		<operation action="create">
+			<replacecode><![CDATA[<?php
+
+require_once (ENGINE_DIR . '/data/config.compare.php');
+
+define('TEMPLATE_DIR', ROOT_DIR . '/templates/' . $config['skin']);
+
+
+$template_name = 'ticcix/compare.tpl';
+
+$compare_fields = [];
+foreach ($compare_config['compare_fields'] as $key => $value) {
+    $compare_fields[] = [
+        'field_key' => $key,
+        'field_name' => $value
+    ];
+    $compare_fields_show .= "'{$key}': '{$value}',\n";
+}
+
+if ( file_exists( TEMPLATE_DIR . '/' . $template_name ) ) {
+
+    $tpl->load_template($template_name);
+    $tpl->set('{compare_fields}', $compare_fields_show);  
+    $tpl->compile('content');
+    $tpl->clear();
+
+} else {
+
+    msgbox("შეცდომა", "თემფლეიტ ფაილი <b>{$template_name}</b> ვერ მოიძებნა!");
+
+}
+
+?>]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/ajax/compare_news.php">
+		<operation action="create">
+			<replacecode><![CDATA[<?php
+/*
+ * ფაილი: engine/ajax/compare_news.php
+ */
+
+if(!defined('DATALIFEENGINE')) {
+    header( "HTTP/1.1 403 Forbidden" );
+    die( "Hacking attempt!" );
+}
+
+header('Content-Type: application/json; charset=utf-8');
+
+// --- 1. წაშლის ლოგიკა ---
+if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'remove' && isset($_REQUEST['id'])) {
+    $id = intval($_REQUEST['id']);
+    if (isset($_SESSION['compare'][$id])) unset($_SESSION['compare'][$id]);
+    if (empty($_SESSION['compare'])) unset($_SESSION['compare']); 
+    echo json_encode(['status' => 'success']);
+    die();
+}
+
+// --- 2. სესიის შემოწმება ---
+if (empty($_SESSION['compare'])) {
+    echo json_encode(['status' => 'empty', 'message' => 'სია ცარიელია']);
+    die();
+}
+
+require_once (ENGINE_DIR . '/data/config.compare.php');
+// --- 3. ID-ების მომზადება ---
+$compare_ids = array_keys($_SESSION['compare']);
+$compare_ids = array_map('intval', $compare_ids);
+$ids_str = implode(",", $compare_ids);
+
+$sql = "SELECT * FROM " . PREFIX . "_post WHERE id IN ({$ids_str})";
+$result = $db->query($sql);
+
+$properties = [];
+
+// კონფიგურაციის ველი (თუ არ არსებობს, იყოს ცარიელი)
+$config_poster_field = isset($compare_config['xfield_poster']) ? $compare_config['xfield_poster'] : '';
+
+
+
+while ($row = $db->get_row($result)) {
+
+    // --- 4. Xfields-ის პარსინგი (ყოველთვის გვჭირდება) ---
+    $xfields_data = [];
+    if ($row['xfields']) {
+        $pairs = explode("||", $row['xfields']);
+        foreach ($pairs as $pair) {
+            $parts = explode("|", $pair);
+            if (isset($parts[0]) && isset($parts[1])) {
+                $xfields_data[trim($parts[0])] = trim($parts[1]);
+            }
+        }
+    }
+
+    // --- 5. სურათის ლოგიკა ---
+  $main_image = '{THEME}/images/no-image.jpg'; // საწყისი მნიშვნელობა
+    $image_found = false; // <--- მთავარი შესწორება! ეს უნდა იყოს FALSE
+
+    // ნაბიჯი 1: ვამოწმებთ კონკრეტულ Xfield-ს
+    if (!empty($config_poster_field) && isset($xfields_data[$config_poster_field]) && !empty($xfields_data[$config_poster_field])) {
+        
+        $xfield_val = stripslashes($xfields_data[$config_poster_field]); // ვასუფთავებთ
+        $first_image_str = html_entity_decode($xfield_val);
+        $img_parts = explode('|', $first_image_str); 
+        $path = trim($img_parts[0]);
+
+        if (!empty($path)) {
+            if (strpos($path, "http") === 0 || strpos($path, "//") === 0) {
+                $main_image = $path; // თუ პირდაპირი ლინკია
+            } else {
+                // ლოკალური ლინკის დამუშავება
+                if (strpos($path, "/uploads/") === 0) {
+                    $main_image = $config['http_home_url'] . ltrim($path, '/');
+                } else {
+                    $main_image = $config['http_home_url'] . 'uploads/posts/' . $path;
+                }
+            }
+            $image_found = true; // მხოლოდ აქ ვნიშნავთ, რომ ვიპოვეთ
+        }
+    }
+
+    // ნაბიჯი 2: თუ Xfield-ში სურათი არ მოიძებნა, ვეძებთ short_story-ში
+    if (!$image_found) {
+        $images = array();
+        
+        // ვაერთიანებთ ველებს
+        $content = $row['short_story'] . $row['xfields'];
+        $content = stripslashes($content); 
+
+        preg_match_all('/<img[^>]+src=[\'"]([^\'"]+)[\'"]/i', $content, $matches);
+        $img_arr = array('jpg', 'jpeg', 'gif', 'png', 'bmp', 'webp', 'avif', 'svg');
+
+        if (isset($matches[1]) && count($matches[1]) > 0) {
+            foreach($matches[1] as $url) {
+                $info = pathinfo($url);
+                if (isset($info['extension'])) {
+                    // ფილტრაცია
+                    if ($info['filename'] == "spoiler-plus" OR $info['filename'] == "spoiler-minus" OR strpos($url, 'engine/data/emoticons') !== false) continue;
+                    
+                    $ext = strtolower($info['extension']);
+                    if (in_array($ext, $img_arr)) {
+                        $images[] = $url;
+                    }
+                }
+            }
+        }
+
+        if (count($images) > 0) {
+            $main_image = $images[0];
+            $image_found = true;
+        }
+    }
+
+
+    // --- 6. სიახლის სრული ლინკის გენერაცია (DLE სტანდარტი) ---
+    if( $config['allow_alt_url'] ) {
+        if( $config['seo_type'] == 1 OR $config['seo_type'] == 2 ) {
+            if( $row['category'] and $config['seo_type'] == 2 ) {
+                $url = $config['http_home_url'] . get_url( $row['category'] ) . "/" . $row['id'] . "-" . $row['alt_name'] . ".html";
+            } else {
+                $url = $config['http_home_url'] . $row['id'] . "-" . $row['alt_name'] . ".html";
+            }
+        } else {
+            $url = $config['http_home_url'] . date( 'Y/m/d/', $row['date'] ) . $row['alt_name'] . ".html";
+        }
+    } else {
+        $url = $config['http_home_url'] . "index.php?newsid=" . $row['id'];
+    }
+
+    // --- 7. მასივის შევსება ---
+    $properties[] = [
+        'id' => $row['id'],
+        'title' => $row['title'],
+        'image' => $main_image, 
+        'url' => $url,
+        'specs' => $xfields_data 
+    ];
+}
+
+
+echo json_encode(['status' => 'success', 'data' => $properties]);
+?>]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/inc/compare.php">
+		<operation action="create">
+			<replacecode><![CDATA[<?PHP
+/*
+=====================================================
+ Ticcix
+-----------------------------------------------------
+ https://github.com/Ticcix || https://ticcix.com
+-----------------------------------------------------
+ Copyright (c) 2025 Ticcix
+=====================================================
+ This code is protected by copyright
+=====================================================
+ File: compare.php
+-----------------------------------------------------
+ Use: Compare news for admin panel
+=====================================================
+*/
+
+if (!defined('DATALIFEENGINE') or !defined('LOGGED_IN')) {
+    header("HTTP/1.1 403 Forbidden");
+    header('Location: ../../');
+    die("Hacking attempt!");
+}
+
+if ($member_id['user_group'] != 1) {
+    msg("error", $lang['index_denied'], $lang['index_denied']);
+}
+
+
+
+
+require_once (ENGINE_DIR . '/data/config.compare.php');
+
+
+if ($action == "save") {
+
+    if ($_REQUEST['user_hash'] == "" or $_REQUEST['user_hash'] != $dle_login_hash) {
+        die("Hacking attempt! User not found");
+    }
+
+    $db->query("INSERT INTO " . USERPREFIX . "_admin_logs (name, date, ip, action, extras) values ('" . $db->safesql($member_id['name']) . "', '{$_TIME}', '{$_IP}', 'Compare Settings Saved', '')");
+
+    // --- 1. მასივის აწყობა (ეს ნაწილი ახალია) ---
+    // აქ ვაგროვებთ cf_keys და cf_titles ინპუტებს და ვქმნით compare_fields მასივს
+    if (isset($_POST['cf_keys']) && isset($_POST['cf_titles'])) {
+        $custom_fields = array();
+        $keys = $_POST['cf_keys'];
+        $titles = $_POST['cf_titles'];
+
+        for ($i = 0; $i < count($keys); $i++) {
+            $k = trim($keys[$i]);
+            $t = trim($titles[$i]);
+            if (!empty($k)) {
+                $custom_fields[$k] = $t;
+            }
+        }
+        $_POST['save_con']['compare_fields'] = $custom_fields;
+    } else {
+        // თუ არაფერია მონიშნული, ცარიელი მასივი იყოს
+        $_POST['save_con']['compare_fields'] = array();
+    }
+    // ---------------------------------------------
+
+    $save_con = $_POST['save_con'];
+
+    $find = array();
+    $replace = array();
+
+    $find[] = "'\r'";
+    $replace[] = "";
+    $find[] = "'\n'";
+    $replace[] = "";
+
+    // არსებული კონფიგურაციის შერწყმა ახალთან, რომ რამე არ დაიკარგოს
+    $save_con = array_merge($compare_config, $save_con);
+
+    $handler = fopen(ENGINE_DIR . '/data/config.compare.php', "w");
+
+    fwrite($handler, "<?PHP \n\n////compare Configurations\n\n\$compare_config = array (\n\n");
+
+    foreach ($save_con as $name => $value) {
+        
+        // --- 2. შემოწმება: მასივია თუ ტექსტი? ---
+        if (is_array($value)) {
+            // თუ მასივია, ვიყენებთ var_export-ს, რომ სწორი PHP სინტაქსით ჩაიწეროს
+            // აქ sanitization-ს არ ვაკეთებთ იგივენაირად, რადგან var_export თავად ამუშავებს ბრჭყალებს
+            $arr_export = var_export($value, true);
+            fwrite($handler, "'{$name}' => {$arr_export},\n\n");
+            
+        } else {
+            // თუ ჩვეულებრივი ტექსტია, მივყვებით შენს ძველ, მკაცრ ფილტრაციას
+            $value = preg_replace($find, $replace, $value);
+            $value = str_replace("$", "&#036;", $value);
+            $value = str_replace("{", "&#123;", $value);
+            $value = str_replace("}", "&#125;", $value);
+            $value = str_replace(chr(0), "", $value);
+            $value = str_replace(chr(92), "", $value); // ეს შლის backslash-ებს
+            $value = str_ireplace("decode", "dec&#111;de", $value);
+            
+            $name = preg_replace($find, $replace, $name);
+            $name = str_replace("$", "&#036;", $name);
+            $name = str_replace("{", "&#123;", $name);
+            $name = str_replace("}", "&#125;", $name);
+            $name = str_replace(chr(0), "", $name);
+            $name = str_replace(chr(92), "", $name);
+            $name = str_replace('(', "", $name);
+            $name = str_replace(')', "", $name);
+            $name = str_ireplace("decode", "dec&#111;de", $name);
+
+            fwrite($handler, "'{$name}' => '{$value}',\n\n");
+        }
+    }
+    
+    fwrite($handler, ");\n\n?>");
+    fclose($handler);
+
+    clear_cache();
+
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+    }
+
+    msg("success", $lang['opt_sysok'], $lang['opt_sysok_1'], "?mod=compare");
+}
+
+
+function showRow($title = "", $description = "", $field = "", $class = "")
+{
+    echo "<tr>
+       <td class=\"col-xs-6 col-sm-6 col-md-7\"><div class=\"media-heading text-semibold\">{$title}</div><span class=\"text-muted text-size-small hidden-xs\">{$description}</span></td>
+       <td class=\"col-xs-6 col-sm-6 col-md-5\">{$field}</td>
+       </tr>";
+}
+
+function makeCheckBox($name, $selected)
+{
+    $selected = $selected ? "checked" : "";
+
+    return "<input class=\"switch\" type=\"checkbox\" name=\"$name\" value=\"1\" {$selected}>";
+}
+
+function makeDropDown($options, $name, $selected)
+{
+    $output = "<select class=\"uniform\" name=\"$name\">\r\n";
+    foreach ($options as $value => $description) {
+        $output .= "<option value=\"$value\"";
+        if ($selected == $value) {
+            $output .= " selected ";
+        }
+        $output .= ">$description</option>\n";
+    }
+    $output .= "</select>";
+    return $output;
+}
+
+echoheader( "<i class=\"fa fa-users position-left\"></i><span class=\"text-semibold\">Compare News</span>", 'General Settings' );
+echo <<<HTML
+<form action="?mod=compare&action=save" name="conf" id="conf" method="post">
+<div id="general" class="panel panel-default" >
+  <div class="panel-heading">
+    Compare News Settings
+  </div>
+  <div class="table-responsive">
+  <table class="table table-striped">
+      <thead>
+      <tr>
+        <th>General Settings</th>
+        <th></th>
+      </tr>
+      </thead>
+HTML;
+showRow('Turn On/Off', 'If On the site will be able to compare news', makeDropDown(array("1" => "{$lang['p_yes']}", "0" => "{$lang['p_no']}"), "save_con[active]", "{$compare_config['active']}"));
+showRow('Poster', 'Xfield name of poster (for example "img") . if is empty will be used first image in short story', "<input type=\"text\" class=\"form-control\" name=\"save_con[xfield_poster]\" value=\"{$compare_config['xfield_poster']}\">");
+$all_xfields = [];
+if(file_exists(ENGINE_DIR . '/data/xfields.txt')) {
+    $xfields_file = file(ENGINE_DIR . '/data/xfields.txt');
+    foreach ($xfields_file as $line) {
+        $data = explode("|", $line);
+        if(isset($data[0])) {
+            $all_xfields[$data[0]] = $data[1]; 
+        }
+    }
+}
+
+$base_options = '<option value="">-- Select Xfield  --</option>';
+foreach ($all_xfields as $name => $desc) {
+    $base_options .= "<option value=\"{$name}\">{$name}</option>";
+}
+
+$current_fields = is_array($compare_config['compare_fields']) ? $compare_config['compare_fields'] : [];
+
+$fields_list = '<div id="cf-container">';
+
+foreach ($current_fields as $key => $val) {
+    $row_options = str_replace("value=\"{$key}\"", "value=\"{$key}\" selected", $base_options);
+
+    $fields_list .= '<div class="cf-row" style="display: flex; gap: 10px; margin-bottom: 5px;">
+        <select class="uniform" name="cf_keys[]" style="width: 45%;">' . $row_options . '</select>
+        <input type="text" class="form-control" name="cf_titles[]" value="' . $val . '" placeholder="Name of field (for example "Price") show on featured characteristics" style="width: 45%;">
+        <i class="fa fa-trash-o position-right text-danger tip legitRipple" data-original-title="Remove" onclick="removeCfRow(this)" style="cursor: pointer;"></i>
+    </div>';
+}
+
+$fields_list .= '</div>';
+
+$fields_list .= '<button type="button" class="btn bg-teal btn-raised position-left legitRipple" onclick="addCfRow()" style="margin-top: 10px;"><i class="fa fa-plus"></i> Add field</button>';
+
+$js_options = json_encode($base_options); 
+
+$fields_list .= "<script>
+function addCfRow() {
+    var container = document.getElementById('cf-container');
+    var div = document.createElement('div');
+    div.className = 'cf-row';
+    div.style = 'display: flex; gap: 10px; margin-bottom: 5px;';
+    
+    var options = {$js_options};
+    
+    div.innerHTML = '<select class=\"uniform\" name=\"cf_keys[]\" style=\"width: 45%;\">' + options + '</select> <input type=\"text\" class=\"form-control\" name=\"cf_titles[]\" placeholder=\"Name of field (for example \"Price\") show on featured characteristics\" style=\"width: 45%;\"> <i class=\"fa fa-trash-o position-right text-danger tip legitRipple\" data-original-title=\"Remove\" onclick=\"removeCfRow(this)\" style=\"cursor: pointer;\"></i>';
+    container.appendChild(div);
+}
+
+function removeCfRow(btn) {
+    confirm(\"Are you sure you want to remove this field?\") && btn.parentNode.remove();
+}
+</script>";
+
+showRow('Fields to compare', 'Select additional fields from the list', $fields_list);
+echo <<<HTML
+</table>
+<div class="panel-footer" style="margin-bottom:30px;">
+<input type="hidden" name="user_hash" value="{$dle_login_hash}" />
+<button type="submit" class="btn bg-teal btn-raised position-left"><i class="fa fa-floppy-o position-left"></i>{$lang['user_save']}</button>
+</div>
+</div></div>
+</form>
+HTML;
+
+]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+	<file name="engine/data/config.compare.php">
+		<operation action="create">
+			<replacecode><![CDATA[<?PHP 
+
+////compare Configurations
+
+$compare_config = array (
+
+);
+
+?>]]></replacecode>
+			<enabled>1</enabled>
+		</operation>
+	</file>
+</dleplugin>
