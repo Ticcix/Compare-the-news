@@ -430,8 +430,7 @@ if ($action == "save") {
 
     $db->query("INSERT INTO " . USERPREFIX . "_admin_logs (name, date, ip, action, extras) values ('" . $db->safesql($member_id['name']) . "', '{$_TIME}', '{$_IP}', 'Compare Settings Saved', '')");
 
-    // --- 1. მასივის აწყობა (ეს ნაწილი ახალია) ---
-    // აქ ვაგროვებთ cf_keys და cf_titles ინპუტებს და ვქმნით compare_fields მასივს
+    
     if (isset($_POST['cf_keys']) && isset($_POST['cf_titles'])) {
         $custom_fields = array();
         $keys = $_POST['cf_keys'];
@@ -446,7 +445,6 @@ if ($action == "save") {
         }
         $_POST['save_con']['compare_fields'] = $custom_fields;
     } else {
-        // თუ არაფერია მონიშნული, ცარიელი მასივი იყოს
         $_POST['save_con']['compare_fields'] = array();
     }
     // ---------------------------------------------
@@ -461,7 +459,7 @@ if ($action == "save") {
     $find[] = "'\n'";
     $replace[] = "";
 
-    // არსებული კონფიგურაციის შერწყმა ახალთან, რომ რამე არ დაიკარგოს
+   
     $save_con = array_merge($compare_config, $save_con);
 
     $handler = fopen(ENGINE_DIR . '/data/config.compare.php', "w");
@@ -472,19 +470,17 @@ if ($action == "save") {
         
         // --- 2. შემოწმება: მასივია თუ ტექსტი? ---
         if (is_array($value)) {
-            // თუ მასივია, ვიყენებთ var_export-ს, რომ სწორი PHP სინტაქსით ჩაიწეროს
-            // აქ sanitization-ს არ ვაკეთებთ იგივენაირად, რადგან var_export თავად ამუშავებს ბრჭყალებს
+        
             $arr_export = var_export($value, true);
             fwrite($handler, "'{$name}' => {$arr_export},\n\n");
             
         } else {
-            // თუ ჩვეულებრივი ტექსტია, მივყვებით შენს ძველ, მკაცრ ფილტრაციას
             $value = preg_replace($find, $replace, $value);
             $value = str_replace("$", "&#036;", $value);
             $value = str_replace("{", "&#123;", $value);
             $value = str_replace("}", "&#125;", $value);
             $value = str_replace(chr(0), "", $value);
-            $value = str_replace(chr(92), "", $value); // ეს შლის backslash-ებს
+            $value = str_replace(chr(92), "", $value); 
             $value = str_ireplace("decode", "dec&#111;de", $value);
             
             $name = preg_replace($find, $replace, $name);
@@ -639,6 +635,7 @@ HTML;
 $compare_config = array (
 
 );
+
 
 ?>]]></replacecode>
 			<enabled>1</enabled>
