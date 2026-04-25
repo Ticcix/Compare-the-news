@@ -13,8 +13,7 @@
 	<mysqlinstall><![CDATA[INSERT INTO `{prefix}_admin_sections` (`name`, `title`, `descr`, `icon`, `allow_groups`)
 VALUES ('compare', 'News Compare', 'News Compare Management Section', 'engine/skins/images/ticcix.png', '1');]]></mysqlinstall>
 	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
-	<mysqlenable><![CDATA[INSERT INTO `{prefix}_admin_sections` (`name`, `title`, `descr`, `icon`, `allow_groups`)
-VALUES ('compare', 'News Compare', 'News Compare Management Section', 'engine/skins/images/ticcix.png', '1');]]></mysqlenable>
+	<mysqlenable><![CDATA[]]></mysqlenable>
 	<mysqldisable><![CDATA[DELETE FROM `{prefix}_admin_sections` WHERE name = 'compare';]]></mysqldisable>
 	<mysqldelete><![CDATA[DELETE FROM `{prefix}_admin_sections` WHERE name = 'compare';]]></mysqldelete>
 	<phpinstall><![CDATA[]]></phpinstall>
@@ -43,6 +42,30 @@ VALUES ('compare', 'News Compare', 'News Compare Management Section', 'engine/sk
          $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/minus_compare.png\" title=\"წაშლა\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
     }]]></replacecode>
 			<enabled>1</enabled>
+			<dleversion>19</dleversion>
+			<versioncompare>less</versioncompare>
+		</operation>
+		<operation action="after">
+			<searchcode><![CDATA[$tpl->set('{related-ids}', RELATED_IDS);]]></searchcode>
+			<replacecode><![CDATA[$compare_arr = isset($_SESSION['compare']) ? array_keys($_SESSION['compare']) : [];
+    $is_added = in_array($row['id'], $compare_arr);
+    $hide_add = $is_added ? 'style="display:none;"' : '';
+    $hide_del = $is_added ? '' : 'style="display:none;"';
+    
+    $tpl->set('[add-compare]', "<span id=\"btn-compare-add-{$row['id']}\" {$hide_add}><a class=\"item\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 1, 'full'); return false;\">");
+    $tpl->set('[/add-compare]', "</a></span>");
+
+    $tpl->set('[del-compare]', "<span id=\"btn-compare-del-{$row['id']}\" {$hide_del}><a class=\"item tx-white bg-danger\" href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 1, 'full'); return false;\">");
+    $tpl->set('[/del-compare]', "</a></span>");
+
+    if (!$is_added) {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'add', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/plus_compare.png\" title=\"დამატება\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    } else {
+         $tpl->set('{compare}', "<span id=\"icon-compare-{$row['id']}\"><a href=\"#\" onclick=\"doCompare('{$row['id']}', 'remove', 0); return false;\"><img src=\"{$config['http_home_url']}templates/{$config['skin']}/dleimages/minus_compare.png\" title=\"წაშლა\" style=\"vertical-align: middle; border: none;\" alt=\"\"></a></span>");
+    }]]></replacecode>
+			<enabled>1</enabled>
+			<dleversion>19</dleversion>
+			<versioncompare>greater</versioncompare>
 		</operation>
 	</file>
 	<file name="engine/modules/show.short.php">
